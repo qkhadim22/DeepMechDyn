@@ -1,18 +1,12 @@
-function [p3_dot,p4_dot] = Deri_pressure_calculation_tilt_Cylinder(param,t, U2,p3,p4,s2,dots2,Va1,Vb1,A1,A2,pP, p_t)
+function [p3_dot,p4_dot] = Deri_pressure_calculation_tilt_Cylinder(param,t, U2,p3,p4,s2,dots2,Va1,Vb1,A1,A2,pP, p_t,i)
 
-if param.DCV
-   Cv1 = param.CvB;
-   Cv2 = param.CVh2;
-
-   [Qd3,Qd4,~] = DCV43(U2,p3,p4,pP,p_t,Cv1,Cv2 );  
-else
-   if param.PVG32_old 
+valve = param.valve_models(i);
+if valve == "PVG32_old" 
     [Qd3,Qd4,~] = PVG32_old(U2,p3,p4,pP,p_t);
-   elseif param.PVG32_flow_basic
-    [Qd3,Qd4,~] = PVG32_flow_basic(t,U2,p3,p4,pP,p_t);
-   else
+elseif valve == "PVG32_flow_basic"
+    [Qd3,Qd4,~] = PVG32_flow_basic(t,U2);
+elseif valve == "PVG32_flow_assymetricDB"
     [Qd3,Qd4,~] = PVG32_flow_assymetricDB(t,U2,p3,p4,pP,p_t); % or another function
-    end
 end
 
 
