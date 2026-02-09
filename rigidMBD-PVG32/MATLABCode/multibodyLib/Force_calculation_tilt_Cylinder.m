@@ -35,12 +35,14 @@ e_dir2 = (R_ex2-R_ex12)/s2;
 F_mu_2= (Fc*tanh(4*(abs(dots2)/vs))+(Fs-Fc)*((abs(dots2)/vs)/.....
     ((1/4)*(abs(dots2)/vs)^2+3/4)^2))*sign(dots2)+sig2*dots2*tanh(4);
 
+Fs2     = p3*A1-p4*A2-0*F_mu_2; % Hydraulic force
+
 %%%%%  Actuator forces in Cylinders
-if abs(p3-p4) > 100e5
-     Fs2     = p3*A1-p4*A2-Cl *(p3*A1-p4*A2)-F_mu_2; % Hydraulic force
-else
-      Fs2     = p3*A1-p4*A2-F_mu_2; % Hydraulic force
-end 
+% if abs(p3-p4) > 100e5
+%      Fs2     = p3*A1-p4*A2-Cl *(p3*A1-p4*A2)-F_mu_2; % Hydraulic force
+% else
+%       Fs2     = p3*A1-p4*A2-F_mu_2; % Hydraulic force
+% end 
 
 F2 = Fs2*e_dir2;
 

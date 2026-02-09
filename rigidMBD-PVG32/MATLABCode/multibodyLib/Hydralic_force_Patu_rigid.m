@@ -1,4 +1,4 @@
-function [Q_hyd, p_hyd_dot] = Hydralic_force_Patu_rigid(t, R,phi,dR,dphi,p_hyd,param,U1,U2,pos,pP,p_t)
+function [Q_hyd, p_hyd_dot, s1, dots1, s2, dots2] = Hydralic_force_Patu_rigid(t, R,phi,dR,dphi,p_hyd,param,U1,U2,pos,pP,p_t, I)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% Lift Hydralic force *******
@@ -25,7 +25,7 @@ Cl2    = param.Cl2;
 Va1    = param.VA;
 Vb1    = param.VA;
 % Derivatives of pressures
-[p1_dot,p2_dot] = Deri_pressure_calculation_lift_Cylinder(param, t, U1,p1,p2,s1,dots1,Va1,Vb1,A1,A2,pP,p_t);
+[p1_dot,p2_dot] = Deri_pressure_calculation_lift_Cylinder(param, t, U1,p1,p2,s1,dots1,Va1,Vb1,A1,A2,pP,p_t, I);
 
 
 
@@ -51,7 +51,7 @@ sig2   = param.sig2;
 Va1    = param.VB;
 Vb1    = param.VB;
 % Derivatives of pressures
-[p3_dot,p4_dot] = Deri_pressure_calculation_tilt_Cylinder(param,t, U2,p3,p4,s2,dots2,Va1,Vb1,A1,A2,pP,p_t);
+[p3_dot,p4_dot] = Deri_pressure_calculation_tilt_Cylinder(param,t, U2,p3,p4,s2,dots2,Va1,Vb1,A1,A2,pP,p_t,I);
 
 
 Q_hyd = [Qe_1+Qe_12;

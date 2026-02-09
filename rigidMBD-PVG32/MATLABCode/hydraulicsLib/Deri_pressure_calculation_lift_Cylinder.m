@@ -1,22 +1,14 @@
-function [p1_dot,p2_dot] = Deri_pressure_calculation_lift_Cylinder(param,t, U1,p1,p2,s1,dots1,Va1,Vb1,A1,A2,pP,p_t)
+function [p1_dot,p2_dot] = Deri_pressure_calculation_lift_Cylinder(param,t, U1,p1,p2,s1,dots1,Va1,Vb1,A1,A2,pP,p_t, i)
 
 % [Qd1,Qd2] = Directional_Flowrates_Valve_Lift(U1,pP,p1,p2);
-
-if param.DCV
-   Cv1 = param.CvA;
-   Cv2 = param.CVh1;
-
-   [Qd1,Qd2,~] = DCV43(U1,p1,p2,pP,p_t,Cv1,Cv2); 
-else
-   if param.PVG32_old 
-    [Qd1,Qd2,~] = PVG32_old(U1,p1,p2,pP,p_t);
-   elseif param.PVG32_flow_basic
-    [Qd1,Qd2,~] = PVG32_flow_basic(t,U1,p1,p2,pP,p_t);
-
-   else
-    [Qd1,Qd2,~] = PVG32_flow_assymetricDB(t,U1,p1,p2,pP,p_t); % or another function
-    end
-end
+valve = param.valve_models(i);
+ if valve == "PVG32_old" 
+        [Qd1,Qd2,~] = PVG32_old(U1,p1,p2,pP,p_t);
+ elseif valve == "PVG32_flow_basic" 
+        [Qd1,Qd2,~] = PVG32_flow_basic(t,U1);   
+ elseif valve == "PVG32_flow_assymetricDB"
+        [Qd1,Qd2,~] = PVG32_flow_assymetricDB(t,U1,p1,p2,pP,p_t); % or another function
+ end
 
 
 l1 = s1 - param.H1;

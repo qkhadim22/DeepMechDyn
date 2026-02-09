@@ -1,33 +1,37 @@
-function [tspan, x, y] = true_hydraulics_PATU(data, tEnd)
+function [tspan, x,Z] = true_hydraulics_PATU(data, tEnd,I)
     
-    Ts                          = data(1,2)-data(1,1);   
+    Ts                          = 1e-3;   
     tspan                       = 0:Ts:tEnd;                   % Time period
     N                           = length(tspan);             % Number of steps
    [param]                       = Get_parameters_Patu();
 [bodies,joints,pos,param_bod]   = Get_bodies_PATU_model_semi();
 
-    p1                          = data(6,1);
-    p2                          = data(7,1);
-    p3                          =  data(8,1);      % Pressure P2,4.780503480752360e+06
-    p4                          = data(9,1);      % Pressure P3,7.477028535636445e+06
+    p1                          =     6.608017392310942e+06;%data(5,1);
+    p2                          = data(6,1);
+    p3                          =  5.224301361479872e+05;%data(7,1);      % Pressure P2,4.780503480752360e+06
+    p4                          = data(8,1);      % Pressure P3,7.477028535636445e+06
      x                          = zeros(8,N);
-     U1                         = data(4,1:N);
-     U2                         = data(5,1:N);
-     p_P                        = data(10,1:N);
-     p_t                        = data(11,1:N);
+     U1                         = data(11,1:N); % 0*data(11,1:N)+5.8*ones(1,N)
+     U2                         = data(12,1:N); %0*data(12,1:N)+
+     p_P                        = data(13,1:N);
+     p_t                        = data(14,1:N);
+     Z                          = zeros(4,N);
+     Z(:,1)                     = [data(2,1);data(3,1);0;0];
 
-  y                             = [data(12,1:N);data(13,1:N);data(14,1:N);data(15,1:N);data(6,1:N);data(7,1:N);data(8,1:N);data(9,1:N) ];
-  x(:,1)                        = [deg2rad(data(12,1));deg2rad(data(13,1))-deg2rad(data(12,1));0;0;
+  % y                             = [data(12,1:N);data(13,1:N);data(14,1:N);data(15,1:N);data(6,1:N);data(7,1:N);data(8,1:N);data(9,1:N);data(2,1:N);data(3,1:N);U1; U2; ];
+   % y                             = [data(12,1:N);data(13,1:N);data(14,1:N);data(15,1:N);data(6,1:N);data(7,1:N);data(8,1:N);data(9,1:N);data(2,1:N);data(3,1:N);U1; U2; ];
+
+  x(:,1)                        = [deg2rad(data(1,1));deg2rad(data(2,1))-deg2rad(data(1,1));0;0;
                                      p1;p2;p3;p4];
 
 for k = 2:N
 
- x(:, k)    = Rk4_Patu(@eom, Ts,tspan(k),x(:, k-1), U1(:, k),U2(:, k),p_P(k),p_t(k));
+ [x(:, k), Z(:, k)]     = Rk4_Patu(@eom, Ts,tspan(k),x(:, k-1), U1(:, k),U2(:, k),p_P(k),p_t(k), I);
 
 end
 
 
-function dy = eom(t,x, U1, U2, p_P,p_t )
+function [dy, Z] = eom(t,x, U1, U2, p_P,p_t, I)
  t
 z_i             = x(1:2);
 dz_i            = x(3:4);
@@ -66,7 +70,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%% Hydralic PATU ******
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
- [Qhy, dp_hyd] = Hydralic_force_Patu_rigid(t, R_i,phi,dRi,dphi,p_hyd,param,U1,U2,pos,p_P,p_t);
+ [Qhy, dp_hyd,s1, dots1, s2, dots2] = Hydralic_force_Patu_rigid(t, R_i,phi,dRi,dphi,p_hyd,param,U1,U2,pos,p_P,p_t,I);
 
 % [Qhy, dp_hyd] = Hydralic_force_Patu_new_rigid(t, R_i,phi,dRi,dphi,p_hyd,param,U1,U2,pos,p_P,p_t);
 % Q_wei = External_weight(phi,param,pos); % add mass
@@ -100,5 +104,9 @@ dy(1:2,1) = dz_i;
 dy(3:4,1) = ddz_i;
 dy(5:8,1) = dp_hyd;
 dy        = dy(:);
+Z(1)      = s1;
+Z(2)      = s2;
+Z(3)      = dots1;
+Z(4)      = dots2;
 end
 end
