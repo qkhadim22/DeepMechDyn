@@ -1,18 +1,38 @@
 classdef MultibodySystem < handle
-
-
     properties
-        bodies = {};
-        joints = {};
+        id      double  = 0;       % IDs for the bodies and joints 
+        bodies  cell    = {};      % Cell array of bodies
+        joints  cell    = {};      % Cell array of joints
     end
 methods
 
 
 %% Add rigid body
 function body = addRigidBody(mbs, varargin)
+    
+    body     = RigidBody(varargin{:});
+    if isempty(mbs.bodies)
+        ID = 1;
+    else
+        ID = length(mbs.bodies) + 1;
+    end
 
-        body                = RigidBody(varargin{:});
-        mbs.bodies{end+1}   = body;
+    body.id             = ID;
+    mbs.bodies{end+1}   = body;
+end
+
+%% Add joint
+function joint = addJoint(mbs,varargin)
+     
+    joint  = Constraints(varargin{:});
+
+    if isempty(mbs.joints)
+        ID = 1;
+    else
+        ID = length(mbs.joints) + 1;
+    end
+    joint.id        = ID;
+    mbs.joints{end+1}   = joint;
 end
 
 %% Build a multibody system

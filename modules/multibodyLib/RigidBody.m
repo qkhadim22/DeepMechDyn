@@ -1,48 +1,45 @@
 classdef RigidBody < handle
     properties
-        id
-
-        % Physical properties
-        size        = [0 0 0]';
-        mass        = [];
-        COM         = [0 0 0]';
-        inertia     = zeros(3,3);
-
-        % Graphics
-      visualization = struct([]);
-      graphics      = struct([]);
-
-        % Markers
-        markers     = struct([]);
+        id           double     = 0;
 
         % Configuration
-        position    = [0 0 0]';
-        local_offset= [0 0 0]';
-
-        rotation    = [0 0 0]';
-        rotMatrix   = eye(3);
+        position     double     = [0 0]';
+        local_offset double     = [0 0]';
+        rotation     double     =   0;
+        rotMatrix    double     = eye(2);
 
         % Velocities
-        velocity           = [0 0 0]';
-        omega              = [0 0 0]';
-        drotMatrix         = eye(3);
-
+        velocity     double     = [0 0]';
+        omega        double     = [0 0]';
+        drotMatrix   double     = eye(2);
 
         % Acceleration
-        acceleration       = [0 0 0]'; 
-        alpha              = [0 0 0]'; 
-        ddrotMatrix        = eye(3);
+        acceleration double     = [0 0]'; 
+        alpha        double     = [0 0]'; 
+        ddrotMatrix  double     = eye(2);
 
         % External forces
-        force        = [0 0 0]';
-        moment       = [0 0 0]';
+        force        double     = [0 0 0]';
+        moment       double     = [0 0 0]';
+
+        % Physical properties
+        size double             = [0 0 0]';         % Length, width and thickness
+        mass double             =   0;              % Mass
+        COM  double             = [0 0 0]';         % Center of mass (x,y,z)
+        inertia double          = zeros(3,3);       % Product moment of inertia
+
+        % Graphics 
+        visualization struct    = struct([]);
+        graphics      struct    = struct([]);
+
+        % Markers
+        markers     struct      = struct([]);
     end
 
 methods
 
 %% Assign physical properties
 function body = RigidBody(varargin)
-            % Constructor (replaces CreateRigidBody)
 
     for i = 1:2:length(varargin)
         name  = varargin{i};
@@ -98,13 +95,23 @@ end
 %% AddMarker
 function Marker = AddMarker(body, varargin)
 
-    % store in body
     if isempty(body.markers)
-        Marker.id = 1;
+        ID = 1;
     else
-        Marker.id = length(body.markers) + 1;
+        ID = length(body.markers) + 1;
     end
-
+     
+    Marker                 = struct();
+    Marker.id              = ID;            % Assign an ID to the marker
+    Marker.localPosition   = [0;0;0];
+    Marker.visualization   = struct([]);
+    Marker.parentBody      = body;
+    Marker.initialLocalPos = [];
+    Marker.refLocalPos     = [];
+    Marker.initialVelLocal = [];
+    Marker.refVelLocal     = [];
+    Marker.initialAccLocal = [];
+    Marker.refAccLocal     = [];
 
     for i = 1:2:length(varargin)
         name  = varargin{i};
@@ -113,19 +120,34 @@ function Marker = AddMarker(body, varargin)
         switch name
             case 'localPosition'
                 Marker.localPosition = value;
-                if isempty(body.markers)
-                    body.markers = Marker;
-                else
-                    body.markers(end+1) = Marker;
-                end
-
+          
             case 'visualization'
                 Marker.visualization = value;
+            case 'initialLocalPosition'
+                Marker.initialLocalPos = value(:);
+            case 'refLocalPosition'
+                Marker.refLocalPos = value(:);
+            otherwise
+                warning('this marker feature is not added yet')
+             
+         end
+    end
 
-                if isfield(value, 'show') && value.show
-                    body.visualize()
-                end
-        end
+    if isempty(Marker.initialLocalPos)
+        Marker.initialLocalPos = Marker.localPosition;
+    end
+    if isempty(Marker.refLocalPos)
+        Marker.refLocalPos = Marker.localPosition;
+    end
+
+    if isempty(body.markers)
+        body.markers = Marker;
+    else
+        body.markers(end+1) = Marker;
+    end
+
+    if isfield(Marker.visualization, 'show') && Marker.visualization.show
+        body.visualize()
     end
 
    
@@ -137,7 +159,7 @@ end
 function g = plot_body(body)
 
     p0      = body.positionVec(body.local_offset(:));
-    pend    = body.positionVec([body.size(1);0;0]);
+    pend    = body.positionVec([body.size(1);0]);
 
     core_line   = [p0  pend]';
 

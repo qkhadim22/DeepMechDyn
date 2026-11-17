@@ -1,21 +1,7 @@
 function Rd = Rd_function_PATU(rj)
-r1x = rj(1,1);
-r1y = rj(2,1);
-r2x = rj(1,2);
-r2y = rj(2,2);
-r3x = rj(1,3);
-r3y = rj(2,3);
-r4x = rj(1,4);
-r4y = rj(2,4);
-Rd =[  r1y,    0,    0,    0;
-      -r1x,    0,    0,    0;
-         1,    0,    0,    0;
-         0,  r2y,    0,    0;
-         0, -r2x,    0,    0;
-         0,    1,    0,    0;
-         0,    0,  r3y,    0;
-         0,    0, -r3x,    0;
-         0,    0,    1,    0;
-         0,    0,    0,  r4y;
-         0,    0,    0, -r4x;
-         0,    0,    0,    1];
+% Rd(3*(i-1)+1:3*i, i) = [r_iy; -r_ix; 1] for every body i (rj holds the joint positions as columns)
+nb = size(rj,2);
+Rd = zeros(3*nb,nb);
+for i = 1:nb
+    Rd(3*(i-1)+1:3*i,i) = [rj(2,i); -rj(1,i); 1];
+end

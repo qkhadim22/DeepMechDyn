@@ -1,9 +1,57 @@
-#ignore everything
-* 
+# ---------------------------------------------------------------
+# Ignore everything at the top level by default (private files,
+# drawings, datasets, notes). Only the folders below are public.
+# ---------------------------------------------------------------
+/*
 
-#but allow modules
-!modules/
-!modules/**
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/LICENSE
 
-#keep git config
-!.gitignore
+!/modules/
+!/tests/
+!/tutorials/
+!/Tutorials/
+!/rigidMBD-PVG32/
+
+# ---------------------------------------------------------------
+# Never publish inside the public folders
+# ---------------------------------------------------------------
+# Python / MATLAB / editor clutter
+__pycache__/
+*.pyc
+*.asv
+*.MATLABDriveTag
+.vscode/
+_archive/
+_backup*/
+
+# Large data, FE matrices and trained models
+# (too big for GitHub; share via a release or Zenodo instead)
+*.mat
+*.npz
+*.npy
+*.pkl
+*.joblib
+*.csv
+Tet-4/
+Crane Dataset/
+180KG/
+solution/
+
+# Crane geometry and FE meshes (check sharing rights before removing)
+LowQualityPATU/
+AbaqusMesh/
+*.inp
+*.stl
+*.STL
+
+# Paper figures (large; unpublished paper under review)
+rigidMBD-PVG32/figures/
+
+# Private HPC details (CSC username, project number) and scratch files
+*.slurm
+run_job_at_HPC.txt
+old_file.txt
+untitled*.py

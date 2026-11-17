@@ -17,6 +17,9 @@ classdef RotationUtils
             R = [cos(theta)   -sin(theta)        0;
                  sin(theta)   cos(theta)        0;
                         0           0           1];
+
+
+            R = R(1:2,1:2);
         end
 
         function R = rot(theta)
@@ -26,7 +29,16 @@ classdef RotationUtils
             phi = theta(3);   
 
             R   = RotationUtils.rotX(th)*RotationUtils.rotY(psi)*RotationUtils.rotZ(phi);
-        end 
+        end
+
+        function S = skew(v)
+            S = [   0     -v(2);
+                   v(2)    0    ];
+
+            % S = [   0     -v(3)    v(2);
+            %         v(3)    0      -v(1);
+            %       -v(2)    v(1)     0 ];
+        end
 
     end
 end

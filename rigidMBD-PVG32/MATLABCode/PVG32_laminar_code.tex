@@ -1,0 +1,122 @@
+% PVG32_laminar valve function with the laminar-flow parts highlighted.
+% Compile with pdfLaTeX (Overleaf compiles twice automatically, needed for the highlights).
+\documentclass[varwidth=17.2cm, border=8pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{tikzmark, calc}
+
+\definecolor{lamfill}{RGB}{255,170,60}
+\definecolor{lamtext}{RGB}{190,90,0}
+\definecolor{cmtgray}{RGB}{110,110,110}
+\definecolor{kwblue}{RGB}{0,60,170}
+
+\lstset{
+  language=Matlab,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{kwblue}\bfseries,
+  commentstyle=\color{cmtgray}\itshape,
+  stringstyle=\color{red!60!black},
+  numbers=left, numberstyle=\tiny\color{gray}, numbersep=6pt,
+  columns=fixed, keepspaces=true, showstringspaces=false,
+  frame=single, rulecolor=\color{gray!50}, framesep=4pt,
+  xleftmargin=14pt,
+  escapeinside={(*}{*)}
+}
+
+% highlight from the start of line A to the end of line B
+\newcommand{\hlblock}[3]{% start mark, end mark, label
+  \path let \p1 = (pic cs:#1), \p2 = (pic cs:#2) in
+    coordinate (hlTL) at (\x1-2pt, \y1+2.0ex)
+    coordinate (hlBR) at (\x1+15.9cm, \y2-0.8ex)
+    coordinate (hlBL) at (\x1-2pt, \y2-0.8ex);
+  \fill[lamfill, opacity=0.22, rounded corners=2pt] (hlTL) rectangle (hlBR);
+  \draw[lamtext, line width=1.2pt] (hlTL) -- (hlBL);
+  \node[anchor=north east, lamtext, font=\sffamily\scriptsize\bfseries, inner sep=2pt]
+    at ($(hlTL)+(15.8cm,-1pt)$) {#3};
+}
+
+\begin{document}
+
+{\sffamily\bfseries PVG32 valve model with laminar flow on the rod side (\texttt{PVG32\_laminar.m})}
+
+\vspace{4pt}
+\begin{lstlisting}
+function [Q_A, Q_B, Q_p, u] = PVG32_laminar(param, U,p_h1, p_h2)
+
+% U: user control signal
+% p_h1: hydraulic pressure on piston side
+% p_h2: hydraulic pressure on piston-rod side
+% p_P: pump pressure
+% param.p_t: tank pressure
+
+u                          = (param.valve(1).U_N -U)/3;  %(6-U)/3,5.8
+
+if u > param.valve(1).u0
+
+    Q_A = ((u -  param.valve(1).u0)/(1 -  param.valve(1).u0))*param.valve(1).Q0;
+    Kv = ((u -  param.valve(1).u0)/(1 -  param.valve(1).u0))*param.valve(1).Kv0;
+
+(*\tikzmark{a1}*)    dp   = p_h2 - param.p_t;
+    p_tr = 5e5;                                   % transition pressure [Pa]
+    Cv   = param.Cv;
+    if abs(dp) <= p_tr
+        Q_B = Cv*dp;                   % laminar: linear
+    else
+        Q_B = Kv*sqrt(abs(dp))*sign(dp);          % turbulent
+(*\tikzmark{a2}*)    end
+
+    Q_p = Q_A;
+elseif u > -param.valve(1).u0
+    Q_B = 1e-10;
+    Q_p = Q_B;
+    Q_A = 0;
+else
+
+(*\tikzmark{b1}*)    dp   = p_h2 - param.p_t;
+    p_tr = 7e5;                                   % transition pressure [Pa]
+    kv0  = (abs(u) -  param.valve(1).u0)/(1 -  param.valve(1).u0);
+    Cv   = param.Cv;
+    if abs(dp) <= p_tr
+        Q_B = Cv*dp;                   % laminar: linear
+    else
+        Q_B = -kv0*param.valve(1).Q1;
+(*\tikzmark{b2}*)    end
+
+    Kv = (abs(u) -  param.valve(1).u0)/(1 -  param.valve(1).u0)*param.valve(1).Kv1;
+    Q_A = -Kv*sqrt(abs(p_h1-param.p_t))*sign(p_h1-param.p_t);
+
+    Q_p = Q_B;
+end
+\end{lstlisting}
+
+\begin{tikzpicture}[remember picture, overlay]
+  \hlblock{a1}{a2}{Laminar flow, case 1: $u > u_0$}
+  \hlblock{b1}{b2}{Laminar flow, case 2: $u < -u_0$}
+\end{tikzpicture}
+
+\vspace{4pt}
+{\sffamily\bfseries\small Laminar coefficient (parameter file)}
+
+\vspace{2pt}
+\begin{lstlisting}[numbers=none]
+Q1                  = 40/6e4;                                % 40 l/min -> m^3/s
+param.Cv            = (Q1) / sqrt(param.valve(2).p_ref);
+\end{lstlisting}
+
+\vspace{2pt}
+{\small Rod-side flow $Q_\mathrm{B}$ with $\Delta p = p_{\mathrm{h}2} - p_\mathrm{t}$:
+\[
+Q_\mathrm{B} =
+\begin{cases}
+C_v\,\Delta p, & |\Delta p| \le p_\mathrm{tr} \quad \text{(laminar)}\\[2pt]
+K_v\sqrt{|\Delta p|}\,\operatorname{sign}(\Delta p), & |\Delta p| > p_\mathrm{tr},\ u > u_0 \quad \text{(turbulent)}\\[2pt]
+-k_{v0}\,Q_1, & |\Delta p| > p_\mathrm{tr},\ u < -u_0 \quad \text{(flow-controlled)}
+\end{cases}
+\]
+with $C_v = Q_1/\sqrt{p_\mathrm{ref}}$, $Q_1 = 40$\,l/min, and $p_\mathrm{tr} = 5$\,bar (case 1) and $7$\,bar (case 2).}
+
+\end{document}
